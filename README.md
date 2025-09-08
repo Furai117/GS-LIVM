@@ -216,7 +216,7 @@ roslaunch gslivm livo_botanic_garden.launch
 roslaunch gslivm livo_botanic_garden_livox.launch
 ```
 
-###  5). Run with Livox Mid-360
+### Run with Livox Mid-360
 
 ```bash
 roslaunch gslivm livo_mid360.launch
