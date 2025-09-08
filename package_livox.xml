@@ -26,6 +26,8 @@
   <build_depend>sensor_msgs</build_depend>
   <build_depend>std_msgs</build_depend>
   <build_depend>tf</build_depend>
+  <build_depend>nmea_msgs</build_depend>
+  <build_depend>geographiclib</build_depend>
   <build_export_depend>eigen_conversions</build_export_depend>
   <build_export_depend>geometry_msgs</build_export_depend>
   <build_export_depend>nav_msgs</build_export_depend>
@@ -48,6 +50,8 @@
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>std_msgs</exec_depend>
   <exec_depend>tf</exec_depend>
+  <exec_depend>nmea_msgs</exec_depend>
+  <exec_depend>geographiclib</exec_depend>
 
 
   <!-- The export tag contains other, unspecified, tags -->

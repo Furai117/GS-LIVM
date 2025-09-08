@@ -2,6 +2,10 @@ common:
     point_filter_num: 4
     image_filter_num: 1
     time_sync_en: false         # ONLY turn on when external time synchronization is really not possible
+    gnss_topic: "/gps/fix"
+    gnss_pose_topic: "/gnss_pose"
+    gnss_covariance: 5.0
+    gnss_use_nmea: false
     
 lidar_parameter:
     blind: 0.1

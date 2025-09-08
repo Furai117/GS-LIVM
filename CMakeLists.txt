@@ -45,6 +45,7 @@ if(USE_LIVOX)
     sensor_msgs
     std_msgs
     tf
+    nmea_msgs
     livox_ros_driver2
     cv_bridge
   )
@@ -60,6 +61,7 @@ if(USE_LIVOX)
     sensor_msgs
     std_msgs
     tf
+    nmea_msgs
     cv_bridge
   )
 endif(USE_LIVOX)
@@ -73,6 +75,7 @@ find_package(PCL REQUIRED)
 find_package(Eigen3 REQUIRED)
 find_package(Ceres REQUIRED)
 find_package(OpenCV REQUIRED)
+find_package(GeographicLib REQUIRED)
 
 find_package(Sophus REQUIRED)
 find_package(tsl-robin-map REQUIRED)
@@ -90,15 +93,15 @@ else()
 endif()
 
 catkin_package(
-  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy std_msgs
-  DEPENDS EIGEN3
+  CATKIN_DEPENDS geometry_msgs nav_msgs roscpp rospy std_msgs nmea_msgs
+  DEPENDS EIGEN3 GeographicLib
 )
 
 if(BUILD_GS)
   include_directories(include/gs)
 endif(BUILD_GS)
 
-include_directories(  
+include_directories(
   include
   ${catkin_INCLUDE_DIRS}
   ${EIGEN3_INCLUDE_DIR}
@@ -109,6 +112,7 @@ include_directories(
   ${tsl-robin-map_INCLUDE_DIRS}
   ${PROJECT_SOURCE_DIR}/external/tinyply/source
   ${PYTHON_INCLUDE_DIRS}
+  ${GeographicLib_INCLUDE_DIRS}
 )
 
 include_directories(
@@ -181,7 +185,7 @@ if(BUILD_GS)
 endif(BUILD_GS)
 
 add_executable(livo_node
-		src/liw/lioOptimization.cpp
+                src/liw/lioOptimization.cpp
 		src/liw/imageProcessing.cpp
 		src/liw/opticalFlowTracker.cpp
 		src/liw/rgbMapTracker.cpp
@@ -196,6 +200,9 @@ add_executable(livo_node
     src/liw/cudaMatrixMultiply.cpp)
 
 target_link_libraries(livo_node ${catkin_LIBRARIES} ${PROJECT_NAME}.common ${PROJECT_NAME}.gs ${PROJECT_NAME}.gp3d ${CERES_LIBRARIES} ${OpenCV_LIBRARIES} tsl::robin_map)
+
+add_executable(gnss_adapter src/liw/gnssAdapter.cpp)
+target_link_libraries(gnss_adapter ${catkin_LIBRARIES} ${GeographicLib_LIBRARIES})
 
 # gmm
 # find_package(Open3D REQUIRED)  

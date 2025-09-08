@@ -3,6 +3,16 @@
     <rosparam command="load" file="$(find gslivm)/config/r3live_compressed.yaml" />
     <rosparam command="load" file="$(find gslivm)/config/basic_common.yaml" />
 
+    <arg name="gnss_topic" default="/gps/fix" />
+    <arg name="gnss_pose_topic" default="/gnss_pose" />
+    <arg name="gnss_covariance" default="5.0" />
+
+    <node pkg="gslivm" type="gnss_adapter" name="gnss_adapter" output="screen" />
+
+    <param name="common/gnss_topic" value="$(arg gnss_topic)" />
+    <param name="common/gnss_pose_topic" value="$(arg gnss_pose_topic)" />
+    <param name="common/gnss_covariance" value="$(arg gnss_covariance)" />
+
     <param name="debug_output" type="bool" value="0"/>
     <param name="output_path" type="string" value="$(find gslivm)/output"/>
     <node pkg="gslivm" type="livo_node" name="livo_node" output="screen" /> 

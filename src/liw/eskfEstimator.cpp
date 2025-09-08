@@ -281,6 +281,24 @@ void eskfEstimator::observePose(
   updateAndReset();
 }
 
+void eskfEstimator::observePosition(
+    const Eigen::Vector3d& translation,
+    double trans_noise) {
+  Eigen::Matrix<double, 3, 17> H = Eigen::Matrix<double, 3, 17>::Zero();
+  H.block<3, 3>(0, 0) = Eigen::Matrix3d::Identity();
+
+  Eigen::Matrix3d V = Eigen::Matrix3d::Identity() * trans_noise;
+  Eigen::Matrix<double, 17, 3> K = covariance * H.transpose() * (H * covariance * H.transpose() + V).inverse();
+
+  Eigen::Vector3d update_t = translation - p;
+  Eigen::Matrix<double, 17, 1> predict_vec = Eigen::Matrix<double, 17, 1>::Zero();
+
+  delta_state = predict_vec + K * update_t;
+  covariance = (Eigen::Matrix<double, 17, 17>::Identity() - K * H) * covariance;
+
+  updateAndReset();
+}
+
 void eskfEstimator::updateAndReset() {
   p = p + delta_state.block<3, 1>(0, 0);
   q = q * numType::so3ToQuat(delta_state.block<3, 1>(3, 0));
