@@ -6,6 +6,8 @@
 // c++17
 #include <filesystem>
 
+#include <map>
+#include <mutex>
 #include <queue>
 #include <thread>
 #include <unordered_set>
@@ -13,8 +15,8 @@
 
 // ros
 #include <cv_bridge/cv_bridge.h>
-#include <geometry_msgs/Vector3.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <geometry_msgs/Vector3.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
@@ -291,6 +293,11 @@ class lioOptimization {
 
   ThreadSafeQueue<ImageTs> time_img_buffer;
 
+  std::map<double, cv::Mat> left_image_cache;
+  std::map<double, cv::Mat> right_image_cache;
+  std::mutex image_cache_mutex;
+  double latest_processed_timestamp;
+
   ThreadSafeQueue<sensor_msgs::Imu::ConstPtr> imu_buffer;
   ThreadSafeQueue<point3D> point_buffer;
 
@@ -398,6 +405,7 @@ class lioOptimization {
 
   void heartHandler(const ros::TimerEvent& event);
   void compressedImageHandler(const sensor_msgs::CompressedImageConstPtr& msg);
+  void pruneImageCaches(double current_time);
   // get sensor data
 
   // main loop

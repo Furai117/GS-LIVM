@@ -544,6 +544,7 @@ void lioOptimization::initialValue() {
   last_rendering = false;
   last_time_frame = -1.0;
   current_time = -1.0;
+  latest_processed_timestamp = -1.0;
 
   index_frame = 1;
 
@@ -815,6 +816,11 @@ void lioOptimization::imageHandler(const sensor_msgs::ImageConstPtr& msg) {
   img_ts.image = image;
   img_ts.timestamp = msg->header.stamp.toSec();
   time_img_buffer.push(img_ts);
+  {
+    std::lock_guard<std::mutex> lock(image_cache_mutex);
+    left_image_cache[img_ts.timestamp] = image;
+  }
+  pruneImageCaches(latest_processed_timestamp);
 
   assert(msg->header.stamp.toSec() > last_time_img);
   if (last_time_img == -1.0) {
@@ -852,11 +858,41 @@ void lioOptimization::compressedImageHandler(const sensor_msgs::CompressedImageC
   img_ts.image = image;
   img_ts.timestamp = msg->header.stamp.toSec();
   time_img_buffer.push(img_ts);
+  {
+    std::lock_guard<std::mutex> lock(image_cache_mutex);
+    right_image_cache[img_ts.timestamp] = image;
+  }
+  pruneImageCaches(latest_processed_timestamp);
 
   if (last_time_img == -1.0) {
     start_time_img = msg->header.stamp.toSec();
   }
   last_time_img = msg->header.stamp.toSec();
+}
+
+void lioOptimization::pruneImageCaches(double current_time) {
+  const double threshold = 0.5;
+  size_t dropped_left = 0, dropped_right = 0;
+  size_t left_size = 0, right_size = 0;
+  {
+    std::lock_guard<std::mutex> lock(image_cache_mutex);
+    while (!left_image_cache.empty() && current_time - left_image_cache.begin()->first > threshold) {
+      left_image_cache.begin()->second.release();
+      left_image_cache.erase(left_image_cache.begin());
+      ++dropped_left;
+    }
+    while (!right_image_cache.empty() && current_time - right_image_cache.begin()->first > threshold) {
+      right_image_cache.begin()->second.release();
+      right_image_cache.erase(right_image_cache.begin());
+      ++dropped_right;
+    }
+    left_size = left_image_cache.size();
+    right_size = right_image_cache.size();
+  }
+  if (dropped_left > 0 || dropped_right > 0) {
+    std::cout << "Dropped " << dropped_left << " left and " << dropped_right
+              << " right images. Cache sizes: left=" << left_size << " right=" << right_size << std::endl;
+  }
 }
 
 std::vector<Measurements> lioOptimization::getMeasurements() {
@@ -2472,6 +2508,8 @@ void lioOptimization::run() {
           measurement.time_sweep.second,
           measurement.image,
           measurement.rendering);
+      latest_processed_timestamp = measurement.time_image;
+      pruneImageCaches(latest_processed_timestamp);
 
       imu_states.clear();
 
