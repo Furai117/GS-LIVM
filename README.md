@@ -39,7 +39,8 @@ D. Variance centerd Framework is developed to calculate the initialization param
 E. Easy-to-use. ROS-related code is provided. Any bags contains image, LiDAR points, IMU can be processed.
 
 F. Lower GPU memory usage through an optimized rasterizer that recomputes
-   transient tensors during the backward pass instead of storing them.
+   camera parameters and other transient tensors during the backward pass
+   instead of storing them.
 
 For wiring, calibration, and configuration of dual cameras, Livox Mid-360, and Reach M+ see [Multi-Sensor Setup](doc/multi_sensor_setup.md).
 
