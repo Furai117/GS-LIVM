@@ -33,6 +33,7 @@ class imageProcessing {
   int image_height;  // raw image height
 
   Eigen::Matrix3d camera_intrinsic;
+  Eigen::Matrix3d camera_intrinsic_raw;
   Eigen::Matrix<double, 5, 1> camera_dist_coeffs;
 
   cv::Mat intrinsic, dist_coeffs;
