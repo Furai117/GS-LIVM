@@ -228,6 +228,8 @@ lioOptimization::lioOptimization() {
 
   sub_imu_ori = nh.subscribe<sensor_msgs::Imu>(imu_topic, 500, &lioOptimization::imuHandler, this);
 
+  sub_gnss = nh.subscribe(gnss_pose_topic, 50, &lioOptimization::gnssHandler, this);
+
   if (image_type == RGB8)
     sub_img_ori = nh.subscribe(image_topic, 20, &lioOptimization::imageHandler, this);
   else if (image_type == COMPRESSED)
@@ -256,6 +258,8 @@ void lioOptimization::readParameters() {
   nh.param<std::string>("common/lidar_topic", lidar_topic, "/points_raw");
   nh.param<std::string>("common/imu_topic", imu_topic, "/imu_raw");
   nh.param<std::string>("common/image_topic", image_topic, "/image_raw");
+  nh.param<std::string>("common/gnss_pose_topic", gnss_pose_topic, "/gnss_pose");
+  nh.param<double>("common/gnss_covariance", gnss_covariance, 5.0);
   nh.param<std::string>("common/image_type", str_temp, "RGB8");
   if (str_temp == "RGB8")
     image_type = RGB8;
@@ -782,6 +786,12 @@ void lioOptimization::imuHandler(const sensor_msgs::Imu::ConstPtr& msg) {
   if (last_get_measurement < 0) {
     last_get_measurement = last_time_imu;
   }
+}
+
+void lioOptimization::gnssHandler(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg) {
+  Eigen::Vector3d t;
+  t << msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z;
+  eskf_pro->observePosition(t, gnss_covariance);
 }
 
 void lioOptimization::imageHandler(const sensor_msgs::ImageConstPtr& msg) {

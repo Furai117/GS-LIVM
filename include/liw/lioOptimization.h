@@ -14,6 +14,7 @@
 // ros
 #include <cv_bridge/cv_bridge.h>
 #include <geometry_msgs/Vector3.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
@@ -235,6 +236,7 @@ class lioOptimization {
   ros::Subscriber sub_cloud_ori;  // the data of original point clouds from LiDAR sensor
   ros::Subscriber sub_imu_ori;    // the data of original accelerometer and gyroscope from IMU sensor
   ros::Subscriber sub_img_ori;
+  ros::Subscriber sub_gnss;
 
   int image_type;
 
@@ -242,6 +244,8 @@ class lioOptimization {
   std::string lidar_topic;
   std::string imu_topic;
   std::string image_topic;
+  std::string gnss_pose_topic;
+  double gnss_covariance;
 
   std::unique_ptr<cloudProcessing> cloud_pro;
   std::unique_ptr<eskfEstimator> eskf_pro;
@@ -387,6 +391,8 @@ class lioOptimization {
   void standardCloudHandler(const sensor_msgs::PointCloud2::ConstPtr& msg);
 
   void imuHandler(const sensor_msgs::Imu::ConstPtr& msg);
+
+  void gnssHandler(const geometry_msgs::PoseWithCovarianceStamped::ConstPtr& msg);
 
   void imageHandler(const sensor_msgs::ImageConstPtr& msg);
 

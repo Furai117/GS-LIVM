@@ -216,6 +216,14 @@ roslaunch gslivm livo_botanic_garden.launch
 roslaunch gslivm livo_botanic_garden_livox.launch
 ```
 
+## GNSS Setup
+The package includes a `gnss_adapter` node that converts Reach M+ NMEA messages or standard `/gps/fix` data into the estimator frame.
+Topics and covariance can be configured in `config/basic_common.yaml` and overridden via launch arguments (`gnss_topic`, `gnss_pose_topic`, `gnss_covariance`). The launch files start the adapter automatically:
+
+```bash
+roslaunch gslivm livo_botanic_garden.launch gnss_topic:=/gps/fix
+```
+
 ## 5.Visualization
 Please refer to [Gaussian-Splatting-Cuda](https://github.com/MrNeRF/gaussian-splatting-cuda) to build SIBR_viewer to visualize the 3D gaussian model. Certainly it can be built in the same conda environment. I have installed the dependencies (cos7) in *conda_pkgs.txt*.
 

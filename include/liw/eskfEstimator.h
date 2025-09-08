@@ -112,5 +112,9 @@ class eskfEstimator {
       double trans_noise = 0.001,
       double ang_noise = 0.001);
 
+  void observePosition(
+      const Eigen::Vector3d& translation,
+      double trans_noise = 0.001);
+
   void calculateLxly();
 };
