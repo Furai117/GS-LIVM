@@ -204,39 +204,9 @@ target_link_libraries(livo_node ${catkin_LIBRARIES} ${PROJECT_NAME}.common ${PRO
 
 add_executable(gnss_adapter src/liw/gnssAdapter.cpp)
 target_link_libraries(gnss_adapter ${catkin_LIBRARIES} ${GeographicLib_LIBRARIES})
-
-# gmm
-# find_package(Open3D REQUIRED)  
-# include_directories(${Open3D_INCLUDE_DIR} src/test/gmm)
-
-# add_library(${PROJECT_NAME}.gmm src/test/gmm/GMMFit.cpp)
-# target_link_libraries(${PROJECT_NAME}.gmm ${gs_libs} Open3D::Open3D)
-
-# add_executable(
-#   ${PROJECT_NAME}_test_gmm
-#   src/test/test_gmm.cpp
-# )
-# target_link_libraries(${PROJECT_NAME}_test_gmm  ${PROJECT_NAME}.gmm )
-
-# eclipse
-# find_package(Open3D REQUIRED)  
-# include_directories(${Open3D_INCLUDE_DIR})
-
-# add_executable(
-#   ${PROJECT_NAME}_test_ecli
-#   src/test/test_ecli.cpp
-# )
-# target_link_libraries(${PROJECT_NAME}_test_ecli ${gs_libs} Open3D::Open3D )
-
-# hash
-# add_executable(
-#   ${PROJECT_NAME}_test_hash
-#   src/test/test_hash.cpp
-# )
-
-# target_link_libraries(${PROJECT_NAME}_test_hash  pthread)
-
+ 
 if(CATKIN_ENABLE_TESTING)
+  add_subdirectory(test)
   find_package(rostest REQUIRED)
   rostest_add_rostest(test/slam.test)
 endif()
