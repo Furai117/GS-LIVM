@@ -92,6 +92,16 @@ bash install.sh
 conda activate gslivm
 ```
 
+### Generating output data
+
+Running the mapping pipeline writes reconstruction results (e.g., COLMAP `cameras.bin` and `images.bin`) into an `output/` directory. These files are generated and are not kept in version control. To reproduce them, run a dataset:
+
+```bash
+python scripts/run_dataset.py /path/to/sequence.bag r3live --override output_path:=output
+```
+
+The `output_path` override selects where results are saved and can be adjusted as needed.
+
 ## 2. Prerequisites
 
 The equipment of this repository is as follows. And this repo contains **<u>CPP</u>**, **<u>TorchLib</u>** and **<u>ROS</u>** in **<u>conda</u>**, so maybe it's a little difficult to install. If you are not familiar with the following steps, you can refer to the video of environment deploy [Youtube](https://youtu.be/acTHQIK4QIs?si=oPEd01YCcR_YdLne) in and [Bilibili](https://www.bilibili.com/video/BV1qPx5eoELm/?vd_source=0211af3bb655d5627b96e8718e3af59f).

@@ -4,6 +4,9 @@
 
 doc/video.mp4
 
+# generated mapping data
+output/
+
 # python
 python/calc_det.py
 python/calc_extrinsic.py
