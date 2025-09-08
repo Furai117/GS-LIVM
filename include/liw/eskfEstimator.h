@@ -10,11 +10,8 @@
 // eigen
 #include <Eigen/Core>
 
-// ceres
-#include <ceres/ceres.h>
-
-// utility
-#include "liw/utility.h"
+// helpers
+#include "liw/eskf_utils.h"
 
 class eskfEstimator {
  private:
