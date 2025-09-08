@@ -97,13 +97,13 @@ conda activate gslivm
 
 ### Generating output data
 
-Running the mapping pipeline writes reconstruction results (e.g., COLMAP `cameras.bin` and `images.bin`) into an `output/` directory. These files are generated and are not kept in version control. To reproduce them, run a dataset:
+Running the mapping pipeline writes reconstruction results (e.g., COLMAP `cameras.bin` and `images.bin`) into an `output/` directory. This directory is excluded from version control via `.gitignore` and can be regenerated as needed:
 
 ```bash
 python scripts/run_dataset.py /path/to/sequence.bag r3live --override output_path:=output
 ```
 
-The `output_path` override selects where results are saved and can be adjusted as needed.
+Adjust the `output_path` argument to store results in a different location if desired.
 
 ## 2. Prerequisites
 

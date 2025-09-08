@@ -4,7 +4,7 @@
 
 doc/video.mp4
 
-# generated mapping data
+# generated mapping data produced by the mapping pipeline
 output/
 
 # python
