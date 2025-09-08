@@ -23,3 +23,7 @@ target_link_libraries(test_eskf_estimator eskf gtest_main)
 
 enable_testing()
 add_test(NAME eskf_estimator_test COMMAND test_eskf_estimator)
+
+add_executable(test_camera_utils test_camera_utils.cpp)
+target_link_libraries(test_camera_utils gtest_main Eigen3::Eigen)
+add_test(NAME camera_utils_test COMMAND test_camera_utils)

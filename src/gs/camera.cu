@@ -1,6 +1,7 @@
 #include <torch/torch.h>
 #include <string>
 #include <utility>
+#include <cstring>
 #include <Eigen/Geometry>
 #include "gs/camera.cuh"
 
@@ -102,42 +103,13 @@ Eigen::Quaternionf rotmat2qvec(const Eigen::Matrix3f& R) {
   return qvec;
 }
 
-// torch::Tensor getWorld2View2(
-//     const Eigen::Matrix3f& R,
-//     const Eigen::Vector3f& t,
-//     const Eigen::Vector3f& translate /*= Eigen::Vector3d::Zero()*/,
-//     float scale /*= 1.0*/) {
-//   Eigen::Matrix4f Rt = Eigen::Matrix4f::Identity();
-//   Rt.block<3, 3>(0, 0) = R.transpose();
-//   Rt.block<3, 1>(0, 3) = -R.transpose() * t;
-
-//   Eigen::Matrix4f C2W = Rt.inverse();
-//   Eigen::Vector3f cam_center = C2W.block<3, 1>(0, 3);
-//   cam_center = (cam_center + translate) * scale;
-//   C2W.block<3, 1>(0, 3) = cam_center;
-//   Rt = C2W.inverse();
-//   // Here we create a torch::Tensor from the Eigen::Matrix
-//   // Note that the tensor will be on the CPU, you may want to move it to the desired device later
-//   torch::Tensor RtTensor = torch::from_blob(Rt.data(), {4, 4}, torch::kFloat32);
-//   // clone the tensor to allocate new memory, as from_blob shares the same memory
-//   // this step is important if Rt will go out of scope and the tensor will be used later
-//   return RtTensor.clone();
-// }
-
-// Eigen::Matrix4f getWorld2View2Eigen(
-//     const Eigen::Matrix3f& R,
-//     const Eigen::Vector3f& t,
-//     const Eigen::Vector3f& translate /*= Eigen::Vector3d::Zero()*/,
-//     float scale /*= 1.0*/) {
-//   Eigen::Matrix4f Rt = Eigen::Matrix4f::Identity();
-//   Rt.block<3, 3>(0, 0) = R.transpose();
-//   Rt.block<3, 1>(0, 3) = -R.transpose() * t;
-//   // Rt.block<3, 1>(0, 3) = t;
-
-//   Eigen::Matrix4f C2W = Rt.inverse();
-//   Eigen::Vector3f cam_center = C2W.block<3, 1>(0, 3);
-//   cam_center = (cam_center + translate) * scale;
-//   C2W.block<3, 1>(0, 3) = cam_center;
-//   Rt = C2W.inverse();
-//   return Rt;
-// }
+torch::Tensor getWorld2View2(
+    const Eigen::Matrix3f& R,
+    const Eigen::Vector3f& t,
+    const Eigen::Vector3f& translate /*= Eigen::Vector3f::Zero()*/,
+    float scale /*= 1.0f*/) {
+  Eigen::Matrix4f Rt = getWorld2View2Eigen(R, t, translate, scale);
+  torch::Tensor RtTensor = torch::empty({4, 4}, torch::kFloat32);
+  std::memcpy(RtTensor.data_ptr<float>(), Rt.data(), sizeof(float) * 16);
+  return RtTensor;
+}
