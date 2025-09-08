@@ -807,7 +807,7 @@ void lioOptimization::imageHandler(const sensor_msgs::ImageConstPtr& msg) {
   cv::Mat image = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image.clone();
 
   if (image.cols != image_width_verify || image.rows != image_height_verify) {
-    std::cout << image.cols << " != " << image_width_verify << " && " << image.rows << " != " << image_height_verify
+    std::cout << image.cols << " != " << image_width_verify << " || " << image.rows << " != " << image_height_verify
               << std::endl;
     exit(-1);
   }
@@ -849,7 +849,7 @@ void lioOptimization::compressedImageHandler(const sensor_msgs::CompressedImageC
   }
 
   if (image.cols != image_width_verify || image.rows != image_height_verify) {
-    std::cout << image.cols << " != " << image_width_verify << " && " << image.rows << " != " << image_height_verify
+    std::cout << image.cols << " != " << image_width_verify << " || " << image.rows << " != " << image_height_verify
               << std::endl;
     exit(-1);
   }

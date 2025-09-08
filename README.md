@@ -156,6 +156,7 @@ mamba install --file conda_pkgs.txt -c nvidia -c pytorch -c conda-forge
 ```
 
 ## 3. Build GS-LIVM and Source
+Ensure ROS catkin tools (e.g., `catkin` or `colcon`) are installed. If CUDA is unavailable, configure with `-DBUILD_GS=OFF` during CMake.
 Clone the repository and catkin_make:
 ``` Bash
 # build
