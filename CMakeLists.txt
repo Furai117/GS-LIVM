@@ -227,3 +227,8 @@ target_link_libraries(livo_node ${catkin_LIBRARIES} ${PROJECT_NAME}.common ${PRO
 # )
 
 # target_link_libraries(${PROJECT_NAME}_test_hash  pthread)
+
+if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+  rostest_add_rostest(test/slam.test)
+endif()
