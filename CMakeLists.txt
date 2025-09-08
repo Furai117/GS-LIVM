@@ -234,3 +234,8 @@ target_link_libraries(gnss_adapter ${catkin_LIBRARIES} ${GeographicLib_LIBRARIES
 # )
 
 # target_link_libraries(${PROJECT_NAME}_test_hash  pthread)
+
+if(CATKIN_ENABLE_TESTING)
+  find_package(rostest REQUIRED)
+  rostest_add_rostest(test/slam.test)
+endif()
