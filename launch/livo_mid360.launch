@@ -1,0 +1,10 @@
+<launch>
+    <rosparam command="load" file="$(find gslivm)/config/mid360.yaml" />
+    <rosparam command="load" file="$(find gslivm)/config/basic_common.yaml" />
+
+    <param name="USE_LIVOX" type="bool" value="true"/>
+    <param name="debug_output" type="bool" value="0"/>
+    <param name="output_path" type="string" value="$(find gslivm)/output"/>
+
+    <node pkg="gslivm" type="livo_node" name="livo_node" output="screen" />
+</launch>

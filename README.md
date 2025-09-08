@@ -216,6 +216,12 @@ roslaunch gslivm livo_botanic_garden.launch
 roslaunch gslivm livo_botanic_garden_livox.launch
 ```
 
+###  5). Run with Livox Mid-360
+
+```bash
+roslaunch gslivm livo_mid360.launch
+```
+
 ## 5.Visualization
 Please refer to [Gaussian-Splatting-Cuda](https://github.com/MrNeRF/gaussian-splatting-cuda) to build SIBR_viewer to visualize the 3D gaussian model. Certainly it can be built in the same conda environment. I have installed the dependencies (cos7) in *conda_pkgs.txt*.
 
