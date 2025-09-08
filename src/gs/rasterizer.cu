@@ -55,8 +55,10 @@ torch::autograd::tensor_list _RasterizeGaussians::forward(
 
   // Only save tensors required for the backward pass. Color, radii and
   // precomputed covariance can be reconstructed from the geometry buffers and
-  // therefore do not need to be stored here. This greatly reduces the memory
-  // footprint during training.
+  // therefore do not need to be stored here. The camera center is later
+  // recomputed from the view matrix and other scalar parameters like image
+  // dimensions or the prefiltered flag are unnecessary. This reduces the
+  // memory footprint during training.
   ctx->save_for_backward({means3D, scales, rotations, sh, geomBuffer, binningBuffer, imgBuffer});
   ctx->saved_data["num_rendered"] = num_rendered;
   ctx->saved_data["background"] = bg;
@@ -65,11 +67,7 @@ torch::autograd::tensor_list _RasterizeGaussians::forward(
   ctx->saved_data["projmatrix"] = projmatrix;
   ctx->saved_data["tanfovx"] = tanfovx_val;
   ctx->saved_data["tanfovy"] = tanfovy_val;
-  ctx->saved_data["image_height"] = image_height_val;
-  ctx->saved_data["image_width"] = image_width_val;
   ctx->saved_data["sh_degree"] = sh_degree_val;
-  ctx->saved_data["camera_center"] = camera_center;
-  ctx->saved_data["prefiltered"] = prefiltered_val;
   return {color, radii, out_depth, out_acc};
 }
 
@@ -96,6 +94,14 @@ torch::autograd::tensor_list _RasterizeGaussians::backward(
   auto binningBuffer = saved[5];
   auto imgBuffer = saved[6];
 
+  // Retrieve matrices used for recomputation of auxiliary parameters.
+  auto viewmatrix = ctx->saved_data["viewmatrix"].to<torch::Tensor>();
+  auto projmatrix = ctx->saved_data["projmatrix"].to<torch::Tensor>();
+
+  // Recompute camera position from the view matrix instead of storing it
+  // explicitly in the autograd context.
+  auto camera_center = viewmatrix.inverse()[3].slice(0, 0, 3);
+
   // Recompute or retrieve tensors that are stored inside the geometry buffer
   // instead of saving them explicitly during the forward pass.
   torch::Tensor radii;            // use internal radii from geomBuffer
@@ -120,15 +126,15 @@ torch::autograd::tensor_list _RasterizeGaussians::backward(
               rotations,
               ctx->saved_data["scale_modifier"].to<float>(),
               cov3Ds_precomp,
-              ctx->saved_data["viewmatrix"].to<torch::Tensor>(),
-              ctx->saved_data["projmatrix"].to<torch::Tensor>(),
+              viewmatrix,
+              projmatrix,
               ctx->saved_data["tanfovx"].to<float>(),
               ctx->saved_data["tanfovy"].to<float>(),
               grad_out_color,
               grad_acc,
               sh,
               ctx->saved_data["sh_degree"].to<int>(),
-              ctx->saved_data["camera_center"].to<torch::Tensor>(),
+              camera_center,
               geomBuffer,
               num_rendered,
               binningBuffer,
