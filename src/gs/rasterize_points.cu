@@ -138,6 +138,9 @@ std::tuple<
     torch::Tensor,
     torch::Tensor,
     torch::Tensor>
+// `radii`, `colors` and `cov3D_precomp` may be undefined. In that case the
+// geometry buffer produced during the forward pass contains the necessary
+// information and the corresponding pointers are set to nullptr.
 RasterizeGaussiansBackwardCUDA(
     const torch::Tensor& background,
     const torch::Tensor& means3D,
@@ -181,6 +184,10 @@ RasterizeGaussiansBackwardCUDA(
   torch::Tensor dL_drotations = torch::zeros({P, 4}, means3D.options());
 
   if (P != 0) {
+    const float* colors_ptr = colors.defined() ? colors.contiguous().data<float>() : nullptr;
+    const int* radii_ptr = radii.defined() ? radii.contiguous().data<int>() : nullptr;
+    const float* cov3D_ptr = cov3D_precomp.defined() ? cov3D_precomp.contiguous().data<float>() : nullptr;
+
     CudaRasterizer::Rasterizer::backward(
         P,
         degree,
@@ -191,17 +198,17 @@ RasterizeGaussiansBackwardCUDA(
         H,
         means3D.contiguous().data<float>(),
         sh.contiguous().data<float>(),
-        colors.contiguous().data<float>(),
+        colors_ptr,
         scales.data_ptr<float>(),
         scale_modifier,
         rotations.data_ptr<float>(),
-        cov3D_precomp.contiguous().data<float>(),
+        cov3D_ptr,
         viewmatrix.contiguous().data<float>(),
         projmatrix.contiguous().data<float>(),
         campos.contiguous().data<float>(),
         tan_fovx,
         tan_fovy,
-        radii.contiguous().data<int>(),
+        radii_ptr,
         reinterpret_cast<char*>(geomBuffer.contiguous().data_ptr()),
         reinterpret_cast<char*>(binningBuffer.contiguous().data_ptr()),
         reinterpret_cast<char*>(imageBuffer.contiguous().data_ptr()),

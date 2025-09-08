@@ -53,9 +53,11 @@ torch::autograd::tensor_list _RasterizeGaussians::forward(
       prefiltered_val,
       false);
 
-  ctx->save_for_backward(
-      {colors_precomp, means3D, scales, rotations, cov3Ds_precomp, radii, sh, geomBuffer, binningBuffer, imgBuffer});
-  // TODO: Clean up. Too much data saved.
+  // Only save tensors required for the backward pass. Color, radii and
+  // precomputed covariance can be reconstructed from the geometry buffers and
+  // therefore do not need to be stored here. This greatly reduces the memory
+  // footprint during training.
+  ctx->save_for_backward({means3D, scales, rotations, sh, geomBuffer, binningBuffer, imgBuffer});
   ctx->saved_data["num_rendered"] = num_rendered;
   ctx->saved_data["background"] = bg;
   ctx->saved_data["scale_modifier"] = scale_modifier_val;
@@ -79,18 +81,26 @@ torch::autograd::tensor_list _RasterizeGaussians::backward(
   auto grad_out_depth = grad_outputs[2];
   auto grad_acc = grad_outputs[3];
 
+  // Radii and depth gradients are currently unused but are retained to keep the
+  // signature consistent with the forward pass.
+  (void)grad_out_radii;
+  (void)grad_out_depth;
+
   int num_rendered = ctx->saved_data["num_rendered"].to<int>();
   auto saved = ctx->get_saved_variables();
-  auto colors_precomp = saved[0];
-  auto means3D = saved[1];
-  auto scales = saved[2];
-  auto rotations = saved[3];
-  auto cov3Ds_precomp = saved[4];
-  auto radii = saved[5];
-  auto sh = saved[6];
-  auto geomBuffer = saved[7];
-  auto binningBuffer = saved[8];
-  auto imgBuffer = saved[9];
+  auto means3D = saved[0];
+  auto scales = saved[1];
+  auto rotations = saved[2];
+  auto sh = saved[3];
+  auto geomBuffer = saved[4];
+  auto binningBuffer = saved[5];
+  auto imgBuffer = saved[6];
+
+  // Recompute or retrieve tensors that are stored inside the geometry buffer
+  // instead of saving them explicitly during the forward pass.
+  torch::Tensor radii;            // use internal radii from geomBuffer
+  torch::Tensor colors_precomp;   // geomBuffer contains final RGB values
+  torch::Tensor cov3Ds_precomp;   // covariance is also stored in geomBuffer
 
   auto
       [grad_means2D,
