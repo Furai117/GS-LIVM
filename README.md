@@ -155,6 +155,14 @@ fi" >> ~/miniforge3/envs/{ENV_NAME}/setup.sh
 
 ## 4.Run on Public Datasets
 
+### Dual camera setup
+
+Configurations now provide separate `left_camera` and `right_camera` blocks with their own image topics, intrinsics and IMU-to-camera extrinsics. A sample launch file is available for stereo input:
+
+```bash
+roslaunch gslivm livo_dual_camera.launch
+```
+
 ```Bash
 # Noted: change the path in  line 40 of /home/xieys/catkin_ws/src/GS-LIVM/include/gs/gs/parameters.cuh
 std::filesystem::path output_path = "/home/xieys/catkin_ws/output";

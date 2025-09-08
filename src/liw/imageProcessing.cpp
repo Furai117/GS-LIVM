@@ -22,6 +22,9 @@ imageProcessing::imageProcessing() {
 
   first_data = true;
 
+  image_resize_ratio_right = 1.0;
+  image_width_right = 0;
+  image_height_right = 0;
   setInitialCov();
 }
 
@@ -35,6 +38,18 @@ void imageProcessing::setImageRatio(double& para) {
 
 void imageProcessing::setImageHeight(int& para) {
   image_height = para;
+}
+
+void imageProcessing::setRightImageWidth(int& para) {
+  image_width_right = para;
+}
+
+void imageProcessing::setRightImageRatio(double& para) {
+  image_resize_ratio_right = para;
+}
+
+void imageProcessing::setRightImageHeight(int& para) {
+  image_height_right = para;
 }
 
 void imageProcessing::initCameraParams() {
@@ -67,6 +82,26 @@ void imageProcessing::initCameraParams() {
   map_tracker->maximum_depth_for_projection = tracker_maximum_depth;
 }
 
+void imageProcessing::initRightCameraParams() {
+  camera_intrinsic_right(0, 0) = camera_intrinsic_right(0, 0) * image_resize_ratio_right;
+  camera_intrinsic_right(0, 2) = camera_intrinsic_right(0, 2) * image_resize_ratio_right;
+  camera_intrinsic_right(1, 1) = camera_intrinsic_right(1, 1) * image_resize_ratio_right;
+  camera_intrinsic_right(1, 2) = camera_intrinsic_right(1, 2) * image_resize_ratio_right;
+
+  cv::eigen2cv(camera_intrinsic_right, intrinsic_right);
+  cv::eigen2cv(camera_dist_coeffs_right, dist_coeffs_right);
+
+  cv::initUndistortRectifyMap(
+      intrinsic_right,
+      dist_coeffs_right,
+      cv::Mat(),
+      intrinsic_right,
+      cv::Size(image_width_right * image_resize_ratio_right, image_height_right * image_resize_ratio_right),
+      CV_16SC2,
+      m_ud_map1_right,
+      m_ud_map2_right);
+}
+
 void imageProcessing::setCameraIntrinsic(std::vector<double>& v_camera_intrinsic) {
   camera_intrinsic << v_camera_intrinsic[0], v_camera_intrinsic[1], v_camera_intrinsic[2], v_camera_intrinsic[3],
       v_camera_intrinsic[4], v_camera_intrinsic[5], v_camera_intrinsic[6], v_camera_intrinsic[7], v_camera_intrinsic[8];
@@ -77,12 +112,30 @@ void imageProcessing::setCameraDistCoeffs(std::vector<double>& v_camera_dist_coe
       v_camera_dist_coeffs[3], v_camera_dist_coeffs[4];
 }
 
+void imageProcessing::setCameraIntrinsicRight(std::vector<double>& v_camera_intrinsic) {
+  camera_intrinsic_right << v_camera_intrinsic[0], v_camera_intrinsic[1], v_camera_intrinsic[2], v_camera_intrinsic[3],
+      v_camera_intrinsic[4], v_camera_intrinsic[5], v_camera_intrinsic[6], v_camera_intrinsic[7], v_camera_intrinsic[8];
+}
+
+void imageProcessing::setCameraDistCoeffsRight(std::vector<double>& v_camera_dist_coeffs) {
+  camera_dist_coeffs_right << v_camera_dist_coeffs[0], v_camera_dist_coeffs[1], v_camera_dist_coeffs[2],
+      v_camera_dist_coeffs[3], v_camera_dist_coeffs[4];
+}
+
 void imageProcessing::setExtrinR(Eigen::Matrix3d& R) {
   R_imu_camera = R;
 }
 
 void imageProcessing::setExtrinT(Eigen::Vector3d& t) {
   t_imu_camera = t;
+}
+
+void imageProcessing::setExtrinRRight(Eigen::Matrix3d& R) {
+  R_imu_camera_right = R;
+}
+
+void imageProcessing::setExtrinTRight(Eigen::Vector3d& t) {
+  t_imu_camera_right = t;
 }
 
 void imageProcessing::setInitialCov() {
@@ -125,6 +178,22 @@ bool imageProcessing::process(voxelHashMap& voxel_map, cloudFrame* p_frame) {
           p_frame->image_cols = (int)image_width;
           p_frame->image_rows = (int)image_height;
         }
+
+        if (!p_frame->rgb_image_right.empty()) {
+          if (fabs(image_resize_ratio_right - 1.0) > 1e-6) {
+            cv::Mat temp_img_r;
+            cv::resize(
+                p_frame->rgb_image_right,
+                temp_img_r,
+                cv::Size(image_width_right * image_resize_ratio_right, image_height_right * image_resize_ratio_right));
+            p_frame->rgb_image_right = temp_img_r;
+            p_frame->image_cols_right = (int)image_width_right * image_resize_ratio_right;
+            p_frame->image_rows_right = (int)image_height_right * image_resize_ratio_right;
+          } else {
+            p_frame->image_cols_right = (int)image_width_right;
+            p_frame->image_rows_right = (int)image_height_right;
+          }
+        }
       },
       "resizeImage");
 
@@ -135,6 +204,12 @@ bool imageProcessing::process(voxelHashMap& voxel_map, cloudFrame* p_frame) {
       [&]() { log_time, cv::remap(p_frame->rgb_image, image_undistort, m_ud_map1, m_ud_map2, cv::INTER_LINEAR); },
       "remapImage");
   p_frame->gray_image = initCubicInterpolation(image_undistort);
+
+  if (!p_frame->rgb_image_right.empty()) {
+    cv::Mat image_undistort_right;
+    cv::remap(p_frame->rgb_image_right, image_undistort_right, m_ud_map1_right, m_ud_map2_right, cv::INTER_LINEAR);
+    p_frame->gray_image_right = initCubicInterpolation(image_undistort_right);
+  }
 
   if (first_data) {
     std::vector<cv::Point2f> points_2d_vec_temp;

@@ -31,15 +31,23 @@ class imageProcessing {
  private:
   int image_width;   // raw image width
   int image_height;  // raw image height
+  int image_width_right;
+  int image_height_right;
 
   Eigen::Matrix3d camera_intrinsic;
   Eigen::Matrix<double, 5, 1> camera_dist_coeffs;
+  Eigen::Matrix3d camera_intrinsic_right;
+  Eigen::Matrix<double, 5, 1> camera_dist_coeffs_right;
 
   cv::Mat intrinsic, dist_coeffs;
+  cv::Mat intrinsic_right, dist_coeffs_right;
   cv::Mat m_ud_map1, m_ud_map2;
+  cv::Mat m_ud_map1_right, m_ud_map2_right;
 
   Eigen::Matrix3d R_imu_camera;
   Eigen::Vector3d t_imu_camera;
+  Eigen::Matrix3d R_imu_camera_right;
+  Eigen::Vector3d t_imu_camera_right;
 
   bool ifEstimateCameraIntrinsic;
   bool ifEstimateExtrinsic;
@@ -47,6 +55,7 @@ class imageProcessing {
   Eigen::Matrix<double, 11, 11> covariance;
 
   double image_resize_ratio;
+  double image_resize_ratio_right;
 
   bool log_time = false;
   bool first_data;
@@ -72,14 +81,18 @@ class imageProcessing {
   imageProcessing();
 
   void initCameraParams();
+  void initRightCameraParams();
 
   void setImageWidth(int& para);
+  void setRightImageWidth(int& para);
 
   void setImageRatio(double& para);
+  void setRightImageRatio(double& para);
 
   int getImageWidth() { return image_width; };
 
   void setImageHeight(int& para);
+  void setRightImageHeight(int& para);
 
   int getImageHeight() { return image_height; };
 
@@ -94,10 +107,14 @@ class imageProcessing {
   int getcy() { return camera_intrinsic(1, 2); }
 
   void setCameraIntrinsic(std::vector<double>& v_camera_intrinsic);
+  void setCameraIntrinsicRight(std::vector<double>& v_camera_intrinsic);
   void setCameraDistCoeffs(std::vector<double>& v_camera_dist_coeffs);
+  void setCameraDistCoeffsRight(std::vector<double>& v_camera_dist_coeffs);
 
   void setExtrinR(Eigen::Matrix3d& R);
   void setExtrinT(Eigen::Vector3d& t);
+  void setExtrinRRight(Eigen::Matrix3d& R);
+  void setExtrinTRight(Eigen::Vector3d& t);
 
   void setInitialCov();
 

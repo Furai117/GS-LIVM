@@ -10,6 +10,8 @@
 #include <thread>
 #include <unordered_set>
 #include <vector>
+#include <map>
+#include <mutex>
 
 // ros
 #include <cv_bridge/cv_bridge.h>
@@ -76,7 +78,8 @@
 class imageProcessing;
 
 struct ImageTs {
-  cv::Mat image;
+  cv::Mat left_image;
+  cv::Mat right_image;
   double timestamp;
 };
 
@@ -91,7 +94,8 @@ struct Measurements {
   std::vector<point3D> lidar_points;
 
   double time_image = 0.0;
-  cv::Mat image;
+  cv::Mat left_image;
+  cv::Mat right_image;
 
   bool rendering = false;
 };
@@ -123,9 +127,13 @@ class cloudFrame {
 
   cv::Mat rgb_image;
   cv::Mat gray_image;
+  cv::Mat rgb_image_right;
+  cv::Mat gray_image_right;
 
   int image_cols;
   int image_rows;
+  int image_cols_right;
+  int image_rows_right;
 
   bool if2dPointsAvailable(const double& u, const double& v, const double& scale = 1.0, double fov_mar = -1.0);
 
@@ -234,14 +242,16 @@ class lioOptimization {
 
   ros::Subscriber sub_cloud_ori;  // the data of original point clouds from LiDAR sensor
   ros::Subscriber sub_imu_ori;    // the data of original accelerometer and gyroscope from IMU sensor
-  ros::Subscriber sub_img_ori;
+  ros::Subscriber sub_left_img_ori;
+  ros::Subscriber sub_right_img_ori;
 
   int image_type;
 
   std::string save_bag_path;
   std::string lidar_topic;
   std::string imu_topic;
-  std::string image_topic;
+  std::string left_image_topic;
+  std::string right_image_topic;
 
   std::unique_ptr<cloudProcessing> cloud_pro;
   std::unique_ptr<eskfEstimator> eskf_pro;
@@ -271,9 +281,13 @@ class lioOptimization {
 
   std::vector<double> v_extrin_t_imu_camera;
   std::vector<double> v_extrin_R_imu_camera;
+  std::vector<double> v_extrin_t_imu_camera_right;
+  std::vector<double> v_extrin_R_imu_camera_right;
 
   Eigen::Matrix3d R_imu_camera;
   Eigen::Vector3d t_imu_camera;
+  Eigen::Matrix3d R_imu_camera_right;
+  Eigen::Vector3d t_imu_camera_right;
 
   Eigen::Matrix3d R_camera_lidar;
   Eigen::Vector3d t_camera_lidar;
@@ -282,10 +296,15 @@ class lioOptimization {
 
   std::vector<double> v_camera_intrinsic;
   std::vector<double> v_camera_dist_coeffs;
+  std::vector<double> v_camera_intrinsic_right;
+  std::vector<double> v_camera_dist_coeffs_right;
 
   Eigen::Vector3d pose_lid;
 
   ThreadSafeQueue<ImageTs> time_img_buffer;
+  std::mutex mtx_image;
+  std::map<double, cv::Mat> left_image_cache;
+  std::map<double, cv::Mat> right_image_cache;
 
   ThreadSafeQueue<sensor_msgs::Imu::ConstPtr> imu_buffer;
   ThreadSafeQueue<point3D> point_buffer;
@@ -361,6 +380,8 @@ class lioOptimization {
 
   int image_width_verify;
   int image_height_verify;
+  int right_image_width_verify;
+  int right_image_height_verify;
 
   ros::Timer check_timer;
 
@@ -388,10 +409,12 @@ class lioOptimization {
 
   void imuHandler(const sensor_msgs::Imu::ConstPtr& msg);
 
-  void imageHandler(const sensor_msgs::ImageConstPtr& msg);
+  void leftImageHandler(const sensor_msgs::ImageConstPtr& msg);
+  void rightImageHandler(const sensor_msgs::ImageConstPtr& msg);
 
   void heartHandler(const ros::TimerEvent& event);
-  void compressedImageHandler(const sensor_msgs::CompressedImageConstPtr& msg);
+  void leftCompressedImageHandler(const sensor_msgs::CompressedImageConstPtr& msg);
+  void rightCompressedImageHandler(const sensor_msgs::CompressedImageConstPtr& msg);
   // get sensor data
 
   // main loop
@@ -409,6 +432,7 @@ class lioOptimization {
       double timestamp_begin,
       double timestamp_offset,
       cv::Mat& cur_image,
+      cv::Mat& right_image,
       bool to_rendering);
 
   void run();

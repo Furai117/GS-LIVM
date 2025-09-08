@@ -46,6 +46,14 @@ void cloudFrame::release() {
   if (!gray_image.empty()) {
     gray_image.release();
   }
+
+  if (!rgb_image_right.empty()) {
+    rgb_image_right.release();
+  }
+
+  if (!gray_image_right.empty()) {
+    gray_image_right.release();
+  }
 }
 
 bool cloudFrame::if2dPointsAvailable(const double& u, const double& v, const double& scale, double fov_mar) {
@@ -228,10 +236,13 @@ lioOptimization::lioOptimization() {
 
   sub_imu_ori = nh.subscribe<sensor_msgs::Imu>(imu_topic, 500, &lioOptimization::imuHandler, this);
 
-  if (image_type == RGB8)
-    sub_img_ori = nh.subscribe(image_topic, 20, &lioOptimization::imageHandler, this);
-  else if (image_type == COMPRESSED)
-    sub_img_ori = nh.subscribe(image_topic, 20, &lioOptimization::compressedImageHandler, this);
+  if (image_type == RGB8) {
+    sub_left_img_ori = nh.subscribe(left_image_topic, 20, &lioOptimization::leftImageHandler, this);
+    sub_right_img_ori = nh.subscribe(right_image_topic, 20, &lioOptimization::rightImageHandler, this);
+  } else if (image_type == COMPRESSED) {
+    sub_left_img_ori = nh.subscribe(left_image_topic, 20, &lioOptimization::leftCompressedImageHandler, this);
+    sub_right_img_ori = nh.subscribe(right_image_topic, 20, &lioOptimization::rightCompressedImageHandler, this);
+  }
 
   check_timer = nh.createTimer(ros::Duration(1000.0), &lioOptimization::heartHandler, this);
 
@@ -255,7 +266,8 @@ void lioOptimization::readParameters() {
   // common
   nh.param<std::string>("common/lidar_topic", lidar_topic, "/points_raw");
   nh.param<std::string>("common/imu_topic", imu_topic, "/imu_raw");
-  nh.param<std::string>("common/image_topic", image_topic, "/image_raw");
+  nh.param<std::string>("left_camera/image_topic", left_image_topic, "/left/image_raw");
+  nh.param<std::string>("right_camera/image_topic", right_image_topic, "/right/image_raw");
   nh.param<std::string>("common/image_type", str_temp, "RGB8");
   if (str_temp == "RGB8")
     image_type = RGB8;
@@ -297,18 +309,31 @@ void lioOptimization::readParameters() {
 
   nh.param<bool>("imu_parameter/time_diff_enable", time_diff_enable, false);
 
-  // camera parameter
-  nh.param<int>("camera_parameter/image_width", para_int, -640);
+  // left camera parameter
+  nh.param<int>("left_camera/image_width", para_int, -640);
   img_pro->setImageWidth(para_int);
   image_width_verify = para_int;
-  nh.param<int>("camera_parameter/image_height", para_int, -480);
+  nh.param<int>("left_camera/image_height", para_int, -480);
   img_pro->setImageHeight(para_int);
   image_height_verify = para_int;
 
-  nh.param<double>("camera_parameter/image_resize_ratio", para_double, -1.0);
+  nh.param<double>("left_camera/image_resize_ratio", para_double, -1.0);
   img_pro->setImageRatio(para_double);
-  nh.param<std::vector<double>>("camera_parameter/camera_intrinsic", v_camera_intrinsic, std::vector<double>());
-  nh.param<std::vector<double>>("camera_parameter/camera_dist_coeffs", v_camera_dist_coeffs, std::vector<double>());
+  nh.param<std::vector<double>>("left_camera/camera_intrinsic", v_camera_intrinsic, std::vector<double>());
+  nh.param<std::vector<double>>("left_camera/camera_dist_coeffs", v_camera_dist_coeffs, std::vector<double>());
+
+  // right camera parameter
+  nh.param<int>("right_camera/image_width", para_int, -640);
+  img_pro->setRightImageWidth(para_int);
+  right_image_width_verify = para_int;
+  nh.param<int>("right_camera/image_height", para_int, -480);
+  img_pro->setRightImageHeight(para_int);
+  right_image_height_verify = para_int;
+
+  nh.param<double>("right_camera/image_resize_ratio", para_double, -1.0);
+  img_pro->setRightImageRatio(para_double);
+  nh.param<std::vector<double>>("right_camera/camera_intrinsic", v_camera_intrinsic_right, std::vector<double>());
+  nh.param<std::vector<double>>("right_camera/camera_dist_coeffs", v_camera_dist_coeffs_right, std::vector<double>());
 
   // extrinsic parameter
   nh.param<bool>("extrinsic_parameter/extrinsic_enable", extrin_enable, true);
@@ -316,10 +341,10 @@ void lioOptimization::readParameters() {
       "extrinsic_parameter/extrinsic_t_imu_lidar", v_extrin_t_imu_lidar, std::vector<double>());
   nh.param<std::vector<double>>(
       "extrinsic_parameter/extrinsic_R_imu_lidar", v_extrin_R_imu_lidar, std::vector<double>());
-  nh.param<std::vector<double>>(
-      "extrinsic_parameter/extrinsic_t_imu_camera", v_extrin_t_imu_camera, std::vector<double>());
-  nh.param<std::vector<double>>(
-      "extrinsic_parameter/extrinsic_R_imu_camera", v_extrin_R_imu_camera, std::vector<double>());
+  nh.param<std::vector<double>>("left_camera/extrinsic_t_imu_camera", v_extrin_t_imu_camera, std::vector<double>());
+  nh.param<std::vector<double>>("left_camera/extrinsic_R_imu_camera", v_extrin_R_imu_camera, std::vector<double>());
+  nh.param<std::vector<double>>("right_camera/extrinsic_t_imu_camera", v_extrin_t_imu_camera_right, std::vector<double>());
+  nh.param<std::vector<double>>("right_camera/extrinsic_R_imu_camera", v_extrin_R_imu_camera_right, std::vector<double>());
 
   // state estimation parameters
   nh.param<double>("odometry_options/init_voxel_size", odometry_options.init_voxel_size, -0.2);
@@ -508,12 +533,16 @@ void lioOptimization::initialValue() {
   Til.block<3, 3>(0, 0) = R_imu_lidar;
   Til.block<3, 1>(0, 3) = t_imu_lidar;
 
-  // Tic
+  // Tic left
   R_imu_camera = mat33FromArray(v_extrin_R_imu_camera);
   t_imu_camera = vec3FromArray(v_extrin_t_imu_camera);
   Eigen::Matrix4d Tic = Eigen::Matrix4d::Identity();
   Tic.block<3, 3>(0, 0) = R_imu_camera;
   Tic.block<3, 1>(0, 3) = t_imu_camera;
+
+  // Tic right
+  R_imu_camera_right = mat33FromArray(v_extrin_R_imu_camera_right);
+  t_imu_camera_right = vec3FromArray(v_extrin_t_imu_camera_right);
 
   cloud_pro->setExtrinR(R_imu_lidar);
   cloud_pro->setExtrinT(t_imu_lidar);
@@ -523,6 +552,12 @@ void lioOptimization::initialValue() {
   img_pro->initCameraParams();
   img_pro->setExtrinR(R_imu_camera);
   img_pro->setExtrinT(t_imu_camera);
+
+  img_pro->setCameraIntrinsicRight(v_camera_intrinsic_right);
+  img_pro->setCameraDistCoeffsRight(v_camera_dist_coeffs_right);
+  img_pro->initRightCameraParams();
+  img_pro->setExtrinRRight(R_imu_camera_right);
+  img_pro->setExtrinTRight(t_imu_camera_right);
 
   // Tcl
   Tcl = Tic.inverse() * Til;
@@ -784,13 +819,7 @@ void lioOptimization::imuHandler(const sensor_msgs::Imu::ConstPtr& msg) {
   }
 }
 
-void lioOptimization::imageHandler(const sensor_msgs::ImageConstPtr& msg) {
-  if (image_filter_index % image_filter_num != 0) {
-    image_filter_index++;
-    return;
-  }
-  image_filter_index = 1;
-
+void lioOptimization::leftImageHandler(const sensor_msgs::ImageConstPtr& msg) {
   cv::Mat image = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image.clone();
 
   if (image.cols != image_width_verify || image.rows != image_height_verify) {
@@ -799,27 +828,62 @@ void lioOptimization::imageHandler(const sensor_msgs::ImageConstPtr& msg) {
     exit(-1);
   }
 
-  assert(msg->header.stamp.toSec() > last_time_img);
-
-  ImageTs img_ts;
-  img_ts.image = image;
-  img_ts.timestamp = msg->header.stamp.toSec();
-  time_img_buffer.push(img_ts);
-
-  assert(msg->header.stamp.toSec() > last_time_img);
-  if (last_time_img == -1.0) {
-    start_time_img = msg->header.stamp.toSec();
+  double ts = msg->header.stamp.toSec();
+  {
+    std::lock_guard<std::mutex> lock(mtx_image);
+    left_image_cache[ts] = image;
+    auto it = right_image_cache.find(ts);
+    if (it != right_image_cache.end()) {
+      if (image_filter_index % image_filter_num == 0) {
+        ImageTs img_ts;
+        img_ts.left_image = left_image_cache[ts];
+        img_ts.right_image = it->second;
+        img_ts.timestamp = ts;
+        time_img_buffer.push(img_ts);
+        if (last_time_img == -1.0)
+          start_time_img = ts;
+        last_time_img = ts;
+      }
+      image_filter_index++;
+      left_image_cache.erase(ts);
+      right_image_cache.erase(it);
+    }
   }
-  last_time_img = msg->header.stamp.toSec();
 }
 
-void lioOptimization::compressedImageHandler(const sensor_msgs::CompressedImageConstPtr& msg) {
-  if (image_filter_index % image_filter_num != 0) {
-    image_filter_index++;
-    return;
-  }
-  image_filter_index = 1;
+void lioOptimization::rightImageHandler(const sensor_msgs::ImageConstPtr& msg) {
+  cv::Mat image = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8)->image.clone();
 
+  if (image.cols != right_image_width_verify || image.rows != right_image_height_verify) {
+    std::cout << image.cols << " != " << right_image_width_verify << " && " << image.rows << " != "
+              << right_image_height_verify << std::endl;
+    exit(-1);
+  }
+
+  double ts = msg->header.stamp.toSec();
+  {
+    std::lock_guard<std::mutex> lock(mtx_image);
+    right_image_cache[ts] = image;
+    auto it = left_image_cache.find(ts);
+    if (it != left_image_cache.end()) {
+      if (image_filter_index % image_filter_num == 0) {
+        ImageTs img_ts;
+        img_ts.left_image = it->second;
+        img_ts.right_image = right_image_cache[ts];
+        img_ts.timestamp = ts;
+        time_img_buffer.push(img_ts);
+        if (last_time_img == -1.0)
+          start_time_img = ts;
+        last_time_img = ts;
+      }
+      image_filter_index++;
+      left_image_cache.erase(it);
+      right_image_cache.erase(ts);
+    }
+  }
+}
+
+void lioOptimization::leftCompressedImageHandler(const sensor_msgs::CompressedImageConstPtr& msg) {
   cv::Mat image;
 
   try {
@@ -836,17 +900,67 @@ void lioOptimization::compressedImageHandler(const sensor_msgs::CompressedImageC
     exit(-1);
   }
 
-  assert(msg->header.stamp.toSec() > last_time_img);
-
-  ImageTs img_ts;
-  img_ts.image = image;
-  img_ts.timestamp = msg->header.stamp.toSec();
-  time_img_buffer.push(img_ts);
-
-  if (last_time_img == -1.0) {
-    start_time_img = msg->header.stamp.toSec();
+  double ts = msg->header.stamp.toSec();
+  {
+    std::lock_guard<std::mutex> lock(mtx_image);
+    left_image_cache[ts] = image;
+    auto it = right_image_cache.find(ts);
+    if (it != right_image_cache.end()) {
+      if (image_filter_index % image_filter_num == 0) {
+        ImageTs img_ts;
+        img_ts.left_image = left_image_cache[ts];
+        img_ts.right_image = it->second;
+        img_ts.timestamp = ts;
+        time_img_buffer.push(img_ts);
+        if (last_time_img == -1.0)
+          start_time_img = ts;
+        last_time_img = ts;
+      }
+      image_filter_index++;
+      left_image_cache.erase(ts);
+      right_image_cache.erase(it);
+    }
   }
-  last_time_img = msg->header.stamp.toSec();
+}
+
+void lioOptimization::rightCompressedImageHandler(const sensor_msgs::CompressedImageConstPtr& msg) {
+  cv::Mat image;
+
+  try {
+    cv_bridge::CvImagePtr cv_ptr_compressed = cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::BGR8);
+    image = cv_ptr_compressed->image;
+    cv_ptr_compressed->image.release();
+  } catch (cv_bridge::Exception& e) {
+    printf("Could not convert from '%s' to 'bgr8' !!! ", msg->format.c_str());
+  }
+
+  if (image.cols != right_image_width_verify || image.rows != right_image_height_verify) {
+    std::cout << image.cols << " != " << right_image_width_verify << " && " << image.rows << " != "
+              << right_image_height_verify << std::endl;
+    exit(-1);
+  }
+
+  double ts = msg->header.stamp.toSec();
+  {
+    std::lock_guard<std::mutex> lock(mtx_image);
+    right_image_cache[ts] = image;
+    auto it = left_image_cache.find(ts);
+    if (it != left_image_cache.end()) {
+      if (image_filter_index % image_filter_num == 0) {
+        ImageTs img_ts;
+        img_ts.left_image = it->second;
+        img_ts.right_image = right_image_cache[ts];
+        img_ts.timestamp = ts;
+        time_img_buffer.push(img_ts);
+        if (last_time_img == -1.0)
+          start_time_img = ts;
+        last_time_img = ts;
+      }
+      image_filter_index++;
+      left_image_cache.erase(it);
+      right_image_cache.erase(ts);
+    }
+  }
 }
 
 std::vector<Measurements> lioOptimization::getMeasurements() {
@@ -871,7 +985,8 @@ std::vector<Measurements> lioOptimization::getMeasurements() {
     }
 
     if (point_buffer.front().timestamp >= time_img_buffer.front().timestamp) {
-      time_img_buffer.front().image.release();
+      time_img_buffer.front().left_image.release();
+      time_img_buffer.front().right_image.release();
       time_img_buffer.pop();
       continue;
     }
@@ -883,7 +998,8 @@ std::vector<Measurements> lioOptimization::getMeasurements() {
     }
 
     if (imu_buffer.front()->header.stamp.toSec() >= time_img_buffer.front().timestamp) {
-      time_img_buffer.front().image.release();
+      time_img_buffer.front().left_image.release();
+      time_img_buffer.front().right_image.release();
       time_img_buffer.pop();
       continue;
     }
@@ -921,9 +1037,11 @@ std::vector<Measurements> lioOptimization::getMeasurements() {
       break;
     } else {
       measurement.time_image = time_img_buffer.front().timestamp;
-      measurement.image = time_img_buffer.front().image.clone();
+      measurement.left_image = time_img_buffer.front().left_image.clone();
+      measurement.right_image = time_img_buffer.front().right_image.clone();
 
-      time_img_buffer.front().image.release();
+      time_img_buffer.front().left_image.release();
+      time_img_buffer.front().right_image.release();
       time_img_buffer.pop();
 
       while (imu_buffer.front()->header.stamp.toSec() < measurement.time_image) {
@@ -1321,6 +1439,7 @@ void lioOptimization::process(
     double timestamp_begin,
     double timestamp_offset,
     cv::Mat& cur_image,
+    cv::Mat& right_image,
     bool to_rendering) {
   state* cur_state = new state();
 
@@ -1372,6 +1491,7 @@ void lioOptimization::process(
 
         if (to_rendering) {
           p_frame->rgb_image = cur_image;
+          p_frame->rgb_image_right = right_image;
           img_pro->process(color_voxel_map, p_frame);
         }
       },
@@ -2343,7 +2463,8 @@ void lioOptimization::run() {
         std::vector<point3D>().swap(measurement.lidar_points);
 
         if (measurement.rendering) {
-          measurement.image.release();
+          measurement.left_image.release();
+          measurement.right_image.release();
         }
         continue;
       }
@@ -2460,7 +2581,8 @@ void lioOptimization::run() {
           measurement.lidar_points,
           measurement.time_sweep.first,
           measurement.time_sweep.second,
-          measurement.image,
+          measurement.left_image,
+          measurement.right_image,
           measurement.rendering);
 
       imu_states.clear();
@@ -2471,7 +2593,8 @@ void lioOptimization::run() {
       std::vector<point3D>().swap(measurement.lidar_points);
 
       if (measurement.rendering) {
-        measurement.image.release();
+        measurement.left_image.release();
+        measurement.right_image.release();
       }
     }
   }

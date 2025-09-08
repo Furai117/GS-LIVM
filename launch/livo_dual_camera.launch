@@ -1,0 +1,13 @@
+<launch>
+  <rosparam command="load" file="$(find gslivm)/config/fastlivo_compressed.yaml" />
+  <rosparam command="load" file="$(find gslivm)/config/basic_common.yaml" />
+
+  <arg name="left_image_topic" default="/left_camera/image/compressed" />
+  <arg name="right_image_topic" default="/right_camera/image/compressed" />
+  <param name="left_camera/image_topic" value="$(arg left_image_topic)" />
+  <param name="right_camera/image_topic" value="$(arg right_image_topic)" />
+
+  <param name="debug_output" type="bool" value="0"/>
+  <param name="output_path" type="string" value="$(find gslivm)/output"/>
+  <node pkg="gslivm" type="livo_node" name="livo_node" output="screen" />
+</launch>
