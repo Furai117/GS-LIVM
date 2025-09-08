@@ -198,23 +198,5 @@ add_executable(livo_node
 target_link_libraries(livo_node ${catkin_LIBRARIES} ${PROJECT_NAME}.common ${PROJECT_NAME}.gs ${PROJECT_NAME}.gp3d ${CERES_LIBRARIES} ${OpenCV_LIBRARIES} tsl::robin_map)
 
 if(CATKIN_ENABLE_TESTING)
-  add_executable(${PROJECT_NAME}_test_hash test/test_hash.cpp)
-  target_link_libraries(${PROJECT_NAME}_test_hash ${PROJECT_NAME}.gp3d pthread)
-  add_test(NAME ${PROJECT_NAME}_test_hash COMMAND ${PROJECT_NAME}_test_hash)
-
-  find_package(Open3D)
-  if(Open3D_FOUND)
-    include_directories(${Open3D_INCLUDE_DIR} test/gmm)
-
-    add_library(${PROJECT_NAME}.gmm test/gmm/GMMFit.cpp)
-    target_link_libraries(${PROJECT_NAME}.gmm ${gs_libs} Open3D::Open3D)
-
-    add_executable(${PROJECT_NAME}_test_gmm test/test_gmm.cpp)
-    target_link_libraries(${PROJECT_NAME}_test_gmm ${PROJECT_NAME}.gmm)
-    add_test(NAME ${PROJECT_NAME}_test_gmm COMMAND ${PROJECT_NAME}_test_gmm)
-
-    add_executable(${PROJECT_NAME}_test_ecli test/test_ecli.cpp)
-    target_link_libraries(${PROJECT_NAME}_test_ecli ${gs_libs} Open3D::Open3D)
-    add_test(NAME ${PROJECT_NAME}_test_ecli COMMAND ${PROJECT_NAME}_test_ecli)
-  endif()
+  add_subdirectory(test)
 endif()
