@@ -1,19 +1,34 @@
-# Use micromamba for efficient conda environment management
-FROM mambaorg/micromamba:1.5.7
+# Docker image for GS-LIVM with ROS Noetic and CUDA
+FROM nvidia/cuda:11.8.0-devel-ubuntu20.04
 
-# Set working directory
-WORKDIR /workspace/GS-LIVM
+# Non-interactive frontend
+ENV DEBIAN_FRONTEND=noninteractive
 
-# Copy environment file and create the conda environment
-COPY env.yaml /tmp/env.yaml
-RUN micromamba env create -f /tmp/env.yaml && \
-    micromamba clean --all --yes
+# Install required packages and ROS repositories
+RUN apt-get update && apt-get install -y \
+    curl gnupg2 lsb-release build-essential cmake python3-catkin-tools python3-rosdep \
+    && rm -rf /var/lib/apt/lists/*
 
-# Make the environment active by default
-ENV PATH="/opt/conda/envs/gslivm/bin:$PATH"
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | apt-key add - && \
+    echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros1.list && \
+    apt-get update && apt-get install -y ros-noetic-desktop-full && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy project files
-COPY . /workspace/GS-LIVM
+ENV ROS_DISTRO=noetic
+SHELL ["/bin/bash", "-c"]
+RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> /root/.bashrc
 
-# Default command
-CMD ["bash"]
+# Copy repository
+WORKDIR /opt/GS-LIVM
+COPY . /opt/GS-LIVM
+
+# Setup catkin workspace and build
+RUN mkdir -p /opt/catkin_ws/src && \
+    ln -s /opt/GS-LIVM /opt/catkin_ws/src/GS-LIVM && \
+    source /opt/ros/$ROS_DISTRO/setup.bash && \
+    cd /opt/catkin_ws && \
+    catkin init && \
+    catkin build && \
+    nvcc --version
+
+CMD ["/bin/bash"]
