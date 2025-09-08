@@ -219,6 +219,20 @@ roslaunch gslivm livo_botanic_garden_livox.launch
 ## 5.Visualization
 Please refer to [Gaussian-Splatting-Cuda](https://github.com/MrNeRF/gaussian-splatting-cuda) to build SIBR_viewer to visualize the 3D gaussian model. Certainly it can be built in the same conda environment. I have installed the dependencies (cos7) in *conda_pkgs.txt*.
 
+## Testing
+
+After building the project, tests can be run with Catkin:
+
+```bash
+catkin run_tests
+```
+
+Alternatively, from the build directory you can invoke:
+
+```bash
+ctest --output-on-failure
+```
+
 ## Acknowledgments
 
 Thanks for [RoboStack](https://robostack.github.io/GettingStarted.html), [3D Gaussian Splatting](https://github.com/graphdeco-inria/gaussian-splatting), [Gaussian-Splatting-Cuda](https://github.com/MrNeRF/gaussian-splatting-cuda), [depth-diff-gaussian-rasterization

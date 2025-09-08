@@ -7,7 +7,7 @@
 
 #include <open3d/Open3D.h>
 
-#include "GMMFit.h"
+#include "gmm/GMMFit.h"
 
 struct GMMPoint {
   float x;
@@ -87,8 +87,12 @@ Eigen::MatrixXd convertToEigenMatrix(const std::vector<DPointGMM>& vec) {
   return eigenMatrix;
 }
 
-std::shared_ptr<open3d::geometry::TriangleMesh>
-CreateEllipsoid(const Eigen::Vector3d& center, const Eigen::Vector3d& scale_, const Eigen::Vector3d& color, double sigma_multiplier, int resolution) {
+std::shared_ptr<open3d::geometry::TriangleMesh> CreateEllipsoid(
+    const Eigen::Vector3d& center,
+    const Eigen::Vector3d& scale_,
+    const Eigen::Vector3d& color,
+    double sigma_multiplier,
+    int resolution) {
   auto mesh = open3d::geometry::TriangleMesh::CreateSphere(1.0);
   mesh->ComputeVertexNormals();
 

@@ -16,5 +16,11 @@ class GMMFit {
   //      @param K : Number of gaussians to fit.
   //      @param mu[input/output] : Initial guess of mu of the gaussians. len(mu) == K. each mu must be of 3 (say) dimensional
   //      @param sigma[input/out] : initial guess for sigma. len(sigma) == K. each sigma need to be a square matrix of dxd (say 3x3)
-  static bool fit_multivariate(const MatrixXd& in_vec, const int K, vector<VectorXd>& mu, vector<MatrixXd>& sigma, VectorXd& priors, Eigen::MatrixXd& prob);
+  static bool fit_multivariate(
+      const MatrixXd& in_vec,
+      const int K,
+      vector<VectorXd>& mu,
+      vector<MatrixXd>& sigma,
+      VectorXd& priors,
+      Eigen::MatrixXd& prob);
 };
