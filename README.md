@@ -70,6 +70,26 @@ The system takes input from point cloud data collected by LiDAR, motion informat
 
 Demo video will be released soon.
 
+## Quick Start
+
+### Docker
+
+Build the image and start an interactive shell with all dependencies:
+
+```bash
+docker compose build
+docker compose run --rm gs-livm
+```
+
+### Local installation
+
+Create the conda environment without Docker:
+
+```bash
+bash install.sh
+conda activate gslivm
+```
+
 ## 2. Prerequisites
 
 The equipment of this repository is as follows. And this repo contains **<u>CPP</u>**, **<u>TorchLib</u>** and **<u>ROS</u>** in **<u>conda</u>**, so maybe it's a little difficult to install. If you are not familiar with the following steps, you can refer to the video of environment deploy [Youtube](https://youtu.be/acTHQIK4QIs?si=oPEd01YCcR_YdLne) in and [Bilibili](https://www.bilibili.com/video/BV1qPx5eoELm/?vd_source=0211af3bb655d5627b96e8718e3af59f).
