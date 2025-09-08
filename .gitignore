@@ -4,15 +4,26 @@
 
 doc/video.mp4
 
-# python
+# Temporary/experimental Python scripts (not part of the core project)
+# matrix determinant example
 python/calc_det.py
+# extrinsic matrix calculation helper
 python/calc_extrinsic.py
+# concatenate images and build a video
 python/cat_image.py
+# legacy evaluation script without split
 python/evaluate_no_split.py
+# ROS bag image extraction utility
 python/extract_image.py
+# ROS bag pose extraction utility
 python/parse_pose.py
+# convert outputs to NeRF-SLAM dataset format
 python/parse_to_nerfslam.py
+# visualization and plotting experiments
 python/plot_figure.py
+# depth map L1 comparison visualization
 python/see_depth_l1.py
+# depth/image viewer helper
 python/see_image.py
+# trajectory visualization helper
 python/verbose_traj.py
