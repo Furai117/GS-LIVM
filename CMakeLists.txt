@@ -200,3 +200,4 @@ target_link_libraries(livo_node ${catkin_LIBRARIES} ${PROJECT_NAME}.common ${PRO
 if(CATKIN_ENABLE_TESTING)
   add_subdirectory(test)
 endif()
+
