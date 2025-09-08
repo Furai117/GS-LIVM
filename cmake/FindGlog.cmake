@@ -133,9 +133,11 @@ if(NOT GLOG_INCLUDE_DIR OR NOT EXISTS ${GLOG_INCLUDE_DIR})
     "to directory containing glog/logging.h")
 endif(NOT GLOG_INCLUDE_DIR OR NOT EXISTS ${GLOG_INCLUDE_DIR})
 
+# Locate the glog library.  Try common name variants to support builds on
+# Windows, macOS, and Linux.
 find_library(
   GLOG_LIBRARY
-  NAMES glog
+  NAMES glog Glog glogd libglog libglogd
   PATHS ${GLOG_LIBRARY_DIR_HINTS} ${GLOG_CHECK_LIBRARY_DIRS}
   PATH_SUFFIXES ${GLOG_CHECK_LIBRARY_SUFFIXES})
 if(NOT GLOG_LIBRARY OR NOT EXISTS ${GLOG_LIBRARY})
@@ -158,14 +160,17 @@ if(GLOG_INCLUDE_DIR AND NOT EXISTS ${GLOG_INCLUDE_DIR}/glog/logging.h)
     "Caller defined GLOG_INCLUDE_DIR:"
     " ${GLOG_INCLUDE_DIR} does not contain glog/logging.h header.")
 endif(GLOG_INCLUDE_DIR AND NOT EXISTS ${GLOG_INCLUDE_DIR}/glog/logging.h)
-# TODO: This regex for glog library is pretty primitive, we use lowercase for
-# comparison to handle Windows using CamelCase library names, could this check
-# be better?
-string(TOLOWER "${GLOG_LIBRARY}" LOWERCASE_GLOG_LIBRARY)
-if(GLOG_LIBRARY AND NOT "${LOWERCASE_GLOG_LIBRARY}" MATCHES ".*glog[^/]*")
-  glog_report_not_found("Caller defined GLOG_LIBRARY: "
-                        "${GLOG_LIBRARY} does not match glog.")
-endif(GLOG_LIBRARY AND NOT "${LOWERCASE_GLOG_LIBRARY}" MATCHES ".*glog[^/]*")
+# Ensure that the located library is actually glog.  Accept common release and
+# debug naming conventions used on Windows, macOS, and Linux.
+if(GLOG_LIBRARY)
+  get_filename_component(GLOG_LIBRARY_NAME "${GLOG_LIBRARY}" NAME_WE)
+  string(TOLOWER "${GLOG_LIBRARY_NAME}" LOWERCASE_GLOG_LIBRARY_NAME)
+  if(NOT LOWERCASE_GLOG_LIBRARY_NAME MATCHES "^glog(d)?$" AND
+     NOT LOWERCASE_GLOG_LIBRARY_NAME MATCHES "^libglog(d)?$")
+    glog_report_not_found("Caller defined GLOG_LIBRARY: "
+                          "${GLOG_LIBRARY} does not appear to be a glog library.")
+  endif()
+endif()
 
 # Set standard CMake FindPackage variables if found.
 if(GLOG_FOUND)
