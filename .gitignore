@@ -7,8 +7,15 @@ doc/video.mp4
 # generated mapping data produced by the mapping pipeline
 output/
 
-# python scratch scripts (kept out of version control)
+# experimental scripts used during development
 python/calc_det.py          # matrix determinant demo
 python/calc_extrinsic.py    # quick extrinsic calculator
 python/see_depth_l1.py      # depth comparison utility
 python/see_image.py         # image viewer for debugging
+python/cat_image.py
+python/evaluate_no_split.py
+python/extract_image.py
+python/parse_pose.py
+python/parse_to_nerfslam.py
+python/plot_figure.py
+python/verbose_traj.py
