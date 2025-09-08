@@ -161,12 +161,12 @@ if(GLOG_INCLUDE_DIR AND NOT EXISTS ${GLOG_INCLUDE_DIR}/glog/logging.h)
     " ${GLOG_INCLUDE_DIR} does not contain glog/logging.h header.")
 endif(GLOG_INCLUDE_DIR AND NOT EXISTS ${GLOG_INCLUDE_DIR}/glog/logging.h)
 # Ensure that the located library is actually glog.  Accept common release and
-# debug naming conventions used on Windows, macOS, and Linux.
+# debug naming conventions on Windows (glog[d].lib), macOS, and Linux
+# (libglog[d].so / .a).
 if(GLOG_LIBRARY)
   get_filename_component(GLOG_LIBRARY_NAME "${GLOG_LIBRARY}" NAME_WE)
-  string(TOLOWER "${GLOG_LIBRARY_NAME}" LOWERCASE_GLOG_LIBRARY_NAME)
-  if(NOT LOWERCASE_GLOG_LIBRARY_NAME MATCHES "^glog(d)?$" AND
-     NOT LOWERCASE_GLOG_LIBRARY_NAME MATCHES "^libglog(d)?$")
+  if(NOT GLOG_LIBRARY_NAME MATCHES "^[Gg]log(d)?$" AND
+     NOT GLOG_LIBRARY_NAME MATCHES "^lib[Gg]log(d)?$")
     glog_report_not_found("Caller defined GLOG_LIBRARY: "
                           "${GLOG_LIBRARY} does not appear to be a glog library.")
   endif()
