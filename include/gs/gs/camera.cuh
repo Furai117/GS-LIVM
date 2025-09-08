@@ -11,6 +11,7 @@
 #include "gs/parameters.cuh"
 #include "gs/stb_image.h"
 #include "gs/stb_image_resize.h"
+#include "camera_utils.cuh"
 
 // enum class CAMERA_MODEL {
 //   SIMPLE_PINHOLE = 0,
@@ -121,18 +122,17 @@ namespace gs::param {
 struct ModelParameters;
 }
 
-// torch::Tensor getWorld2View2(
-//     const Eigen::Matrix3f& R,
-//     const Eigen::Vector3f& t,
-//     const Eigen::Vector3f& translate = Eigen::Vector3f::Zero(),
-//     float scale = 1.0);
+torch::Tensor getWorld2View2(
+    const Eigen::Matrix3f& R,
+    const Eigen::Vector3f& t,
+    const Eigen::Vector3f& translate = Eigen::Vector3f::Zero(),
+    float scale = 1.0f);
 
-// TODO: hacky. Find better way
-// Eigen::Matrix4f getWorld2View2Eigen(
-//     const Eigen::Matrix3f& R,
-//     const Eigen::Vector3f& t,
-//     const Eigen::Vector3f& translate = Eigen::Vector3f::Zero(),
-//     float scale = 1.0);
+Eigen::Matrix4f getWorld2View2Eigen(
+    const Eigen::Matrix3f& R,
+    const Eigen::Vector3f& t,
+    const Eigen::Vector3f& translate = Eigen::Vector3f::Zero(),
+    float scale = 1.0f);
 
 torch::Tensor getProjectionMatrix(float znear, float zfar, float fovX, float fovY);
 
