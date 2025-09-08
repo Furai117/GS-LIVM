@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+    env:
+      CCACHE_DIR: ~/.ccache
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache apt
+        uses: actions/cache@v4
+        with:
+          path: /var/cache/apt/archives
+          key: ${{ runner.os }}-apt-${{ hashFiles('**/package.xml') }}
+          restore-keys: ${{ runner.os }}-apt-
+
+      - name: Cache ccache
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ${{ runner.os }}-ccache-${{ github.sha }}
+          restore-keys: ${{ runner.os }}-ccache-
+
+      - name: Setup ROS Noetic sources
+        run: |
+          sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu focal main" > /etc/apt/sources.list.d/ros-latest.list'
+          sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+          sudo apt-get update
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get install -y ros-noetic-desktop python3-catkin-tools python3-rosdep clang-format cppcheck
+          sudo rosdep init
+          rosdep update
+          rosdep install --from-paths src --ignore-src -r -y
+
+      - name: Build
+        run: |
+          source /opt/ros/noetic/setup.bash
+          catkin build
+
+      - name: Run tests
+        run: |
+          source /opt/ros/noetic/setup.bash
+          catkin run_tests
+          catkin_test_results
+
+      - name: clang-format
+        run: |
+          clang-format --version
+          find src include -type f \( -name '*.h' -o -name '*.hpp' -o -name '*.cpp' \) | xargs clang-format -n
+
+      - name: cppcheck
+        run: |
+          cppcheck --version
+          cppcheck --error-exitcode=1 --enable=warning,style,performance,portability include src
