@@ -128,12 +128,6 @@ torch::Tensor getWorld2View2(
     const Eigen::Vector3f& translate = Eigen::Vector3f::Zero(),
     float scale = 1.0f);
 
-Eigen::Matrix4f getWorld2View2Eigen(
-    const Eigen::Matrix3f& R,
-    const Eigen::Vector3f& t,
-    const Eigen::Vector3f& translate = Eigen::Vector3f::Zero(),
-    float scale = 1.0f);
-
 torch::Tensor getProjectionMatrix(float znear, float zfar, float fovX, float fovY);
 
 float fov2focal(float fov, int pixels);
