@@ -144,35 +144,35 @@ void eskfEstimator::setGravity(const Eigen::Vector3d& g_) {
   g = g_;
 }
 
-Eigen::Vector3d eskfEstimator::getTranslation() {
+const Eigen::Vector3d& eskfEstimator::getTranslation() const {
   return p;
 }
 
-Eigen::Quaterniond eskfEstimator::getRotation() {
+const Eigen::Quaterniond& eskfEstimator::getRotation() const {
   return q;
 }
 
-Eigen::Vector3d eskfEstimator::getVelocity() {
+const Eigen::Vector3d& eskfEstimator::getVelocity() const {
   return v;
 }
 
-Eigen::Vector3d eskfEstimator::getBa() {
+const Eigen::Vector3d& eskfEstimator::getBa() const {
   return ba;
 }
 
-Eigen::Vector3d eskfEstimator::getBg() {
+const Eigen::Vector3d& eskfEstimator::getBg() const {
   return bg;
 }
 
-Eigen::Vector3d eskfEstimator::getGravity() {
+const Eigen::Vector3d& eskfEstimator::getGravity() const {
   return g;
 }
 
-Eigen::Vector3d eskfEstimator::getLastAcc() {
+const Eigen::Vector3d& eskfEstimator::getLastAcc() const {
   return acc_0;
 }
 
-Eigen::Vector3d eskfEstimator::getLastGyr() {
+const Eigen::Vector3d& eskfEstimator::getLastGyr() const {
   return gyr_0;
 }
 
@@ -180,7 +180,7 @@ void eskfEstimator::setCovariance(const Eigen::Matrix<double, 17, 17>& covarianc
   covariance = covariance_;
 }
 
-Eigen::Matrix<double, 17, 17> eskfEstimator::getCovariance() {
+const Eigen::Matrix<double, 17, 17>& eskfEstimator::getCovariance() const {
   return covariance;
 }
 

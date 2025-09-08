@@ -84,23 +84,23 @@ class eskfEstimator {
 
   void setCovariance(const Eigen::Matrix<double, 17, 17>& covariance_);
 
-  Eigen::Matrix<double, 17, 17> getCovariance();
+  const Eigen::Matrix<double, 17, 17>& getCovariance() const;
 
-  Eigen::Vector3d getTranslation();
+  const Eigen::Vector3d& getTranslation() const;
 
-  Eigen::Quaterniond getRotation();
+  const Eigen::Quaterniond& getRotation() const;
 
-  Eigen::Vector3d getVelocity();
+  const Eigen::Vector3d& getVelocity() const;
 
-  Eigen::Vector3d getBa();
+  const Eigen::Vector3d& getBa() const;
 
-  Eigen::Vector3d getBg();
+  const Eigen::Vector3d& getBg() const;
 
-  Eigen::Vector3d getGravity();
+  const Eigen::Vector3d& getGravity() const;
 
-  Eigen::Vector3d getLastAcc();
+  const Eigen::Vector3d& getLastAcc() const;
 
-  Eigen::Vector3d getLastGyr();
+  const Eigen::Vector3d& getLastGyr() const;
 
   void predict(double dt_, const Eigen::Vector3d& acc_1_, const Eigen::Vector3d& gyr_1_);
 
