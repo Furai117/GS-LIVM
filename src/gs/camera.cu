@@ -1,6 +1,7 @@
 #include <torch/torch.h>
 #include <string>
 #include <utility>
+#include <Eigen/Geometry>
 #include "gs/camera.cuh"
 
 Camera::Camera(
@@ -89,28 +90,17 @@ float focal2fov(float focal, int pixels) {
   return 2 * std::atan(static_cast<float>(pixels) / (2.f * focal));
 }
 
-// Eigen::Matrix3f qvec2rotmat(const Eigen::Quaternionf& q) {
-//   Eigen::Vector4f qvec = q.coeffs();  // [x, y, z, w]
+Eigen::Matrix3f qvec2rotmat(const Eigen::Quaternionf& q) {
+  return q.toRotationMatrix();
+}
 
-//   Eigen::Matrix3f rotmat;
-//   rotmat << 1.f - 2.f * qvec[2] * qvec[2] - 2.f * qvec[3] * qvec[3], 2.f * qvec[1] * qvec[2] - 2.f * qvec[0] * qvec[3],
-//       2.f * qvec[3] * qvec[1] + 2.f * qvec[0] * qvec[2], 2.f * qvec[1] * qvec[2] + 2.f * qvec[0] * qvec[3],
-//       1.f - 2.f * qvec[1] * qvec[1] - 2.f * qvec[3] * qvec[3], 2.f * qvec[2] * qvec[3] - 2.f * qvec[0] * qvec[1],
-//       2.f * qvec[3] * qvec[1] - 2.f * qvec[0] * qvec[2], 2.f * qvec[2] * qvec[3] + 2.f * qvec[0] * qvec[1],
-//       1.f - 2.f * qvec[1] * qvec[1] - 2.f * qvec[2] * qvec[2];
-
-//   return rotmat;
-// }
-
-// Eigen::Quaternionf rotmat2qvec(const Eigen::Matrix3f& R) {
-//   Eigen::Quaternionf qvec(R);
-//   // the order of coefficients is different in python implementation.
-//   // Might be a bug here if data comes in wrong order! TODO: check
-//   if (qvec.w() < 0.f) {
-//     qvec.coeffs() *= -1.f;
-//   }
-//   return qvec;
-// }
+Eigen::Quaternionf rotmat2qvec(const Eigen::Matrix3f& R) {
+  Eigen::Quaternionf qvec(R);
+  if (qvec.w() < 0.f) {
+    qvec.coeffs() *= -1.f;
+  }
+  return qvec;
+}
 
 // torch::Tensor getWorld2View2(
 //     const Eigen::Matrix3f& R,
