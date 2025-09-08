@@ -38,6 +38,7 @@ void imageProcessing::setImageHeight(int& para) {
 }
 
 void imageProcessing::initCameraParams() {
+  camera_intrinsic = camera_intrinsic_raw;
   camera_intrinsic(0, 0) = camera_intrinsic(0, 0) * image_resize_ratio;
   camera_intrinsic(0, 2) = camera_intrinsic(0, 2) * image_resize_ratio;
   camera_intrinsic(1, 1) = camera_intrinsic(1, 1) * image_resize_ratio;
@@ -68,8 +69,9 @@ void imageProcessing::initCameraParams() {
 }
 
 void imageProcessing::setCameraIntrinsic(std::vector<double>& v_camera_intrinsic) {
-  camera_intrinsic << v_camera_intrinsic[0], v_camera_intrinsic[1], v_camera_intrinsic[2], v_camera_intrinsic[3],
+  camera_intrinsic_raw << v_camera_intrinsic[0], v_camera_intrinsic[1], v_camera_intrinsic[2], v_camera_intrinsic[3],
       v_camera_intrinsic[4], v_camera_intrinsic[5], v_camera_intrinsic[6], v_camera_intrinsic[7], v_camera_intrinsic[8];
+  camera_intrinsic = camera_intrinsic_raw;
 }
 
 void imageProcessing::setCameraDistCoeffs(std::vector<double>& v_camera_dist_coeffs) {
