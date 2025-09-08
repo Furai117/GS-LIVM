@@ -216,6 +216,16 @@ roslaunch gslivm livo_botanic_garden.launch
 roslaunch gslivm livo_botanic_garden_livox.launch
 ```
 
+###  5). Run with Livox Mid-360
+
+The system supports the Livox Mid-360 LiDAR. After installing the Livox SDK and driver, launch the configuration tailored for this sensor:
+
+```bash
+roslaunch gslivm livo_botanic_garden_livox.launch
+```
+
+This launch file sets the appropriate topics and parameters for Mid-360.
+
 ## GNSS Setup
 The package includes a `gnss_adapter` node that converts Reach M+ NMEA messages or standard `/gps/fix` data into the estimator frame.
 Topics and covariance can be configured in `config/basic_common.yaml` and overridden via launch arguments (`gnss_topic`, `gnss_pose_topic`, `gnss_covariance`). The launch files start the adapter automatically:
