@@ -46,6 +46,9 @@ std::tuple<
     torch::Tensor,
     torch::Tensor,
     torch::Tensor>
+// `radii`, `colors`, and `cov3D_precomp` can be undefined; when omitted the
+// backward pass derives the necessary data from the geometry buffer produced in
+// the forward pass.
 RasterizeGaussiansBackwardCUDA(
     const torch::Tensor& background,
     const torch::Tensor& means3D,
