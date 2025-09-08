@@ -1,4 +1,5 @@
 #include "liw/lioOptimization.h"
+#include "liw/config_validator.h"
 
 #include <cnpy.h>
 #include <algorithm>
@@ -203,6 +204,7 @@ estimationSummary::estimationSummary() {}
 void estimationSummary::release() {}
 
 lioOptimization::lioOptimization() {
+  validateParameters(nh);
   allocateMemory();
 
   readParameters();
@@ -2492,7 +2494,12 @@ int main(int argc, char** argv) {
   ros::init(argc, argv, "livo_node");
 
   std::shared_ptr<lioOptimization> lio;
-  lio.reset(new lioOptimization());
+  try {
+    lio.reset(new lioOptimization());
+  } catch (const std::exception& e) {
+    ROS_ERROR("%s", e.what());
+    return 1;
+  }
 
 #ifdef _OPENMP
   int NUM_THREADS = omp_get_num_procs() / 4;

@@ -195,8 +195,9 @@ add_executable(livo_node
 		src/liw/cloudProcessing.cpp 
 		src/liw/state.cpp
 		src/liw/eskfEstimator.cpp
-		src/liw/utility.cpp
-		src/liw/parameters.cpp
+                src/liw/utility.cpp
+                src/liw/parameters.cpp
+                src/liw/config_validator.cpp
     src/liw/cudaMatrixMultiply.cpp)
 
 target_link_libraries(livo_node ${catkin_LIBRARIES} ${PROJECT_NAME}.common ${PROJECT_NAME}.gs ${PROJECT_NAME}.gp3d ${CERES_LIBRARIES} ${OpenCV_LIBRARIES} tsl::robin_map)

@@ -175,6 +175,20 @@ fi" >> ~/miniforge3/envs/{ENV_NAME}/setup.sh
 ```
 
 
+## Configuration Validation
+
+The node validates its YAML configuration at startup. Missing keys or type
+mismatches trigger a descriptive error and the node shuts down. Common mistakes
+include:
+
+* Omitting `common/lidar_topic` → `Missing required parameter 'common/lidar_topic'`
+* Setting `extrinsic_parameter/extrinsic_enable` to a non-boolean value →
+  `Parameter 'extrinsic_parameter/extrinsic_enable' has wrong type (expected boolean)`
+* Providing a `common/gravity_acc` list with a length other than three →
+  `Parameter 'common/gravity_acc' must contain exactly three elements`
+
+Correct the YAML file and relaunch if any of these messages appear.
+
 ## 4.Run on Public Datasets
 
 ```Bash
