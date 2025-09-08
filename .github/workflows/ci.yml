@@ -7,7 +7,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-20.04
     env:
       CCACHE_DIR: ~/.ccache
     steps:
@@ -27,23 +27,27 @@ jobs:
           key: ${{ runner.os }}-ccache-${{ github.sha }}
           restore-keys: ${{ runner.os }}-ccache-
 
-      - name: Setup ROS
-        uses: ros-tooling/setup-ros@v0.7
-        with:
-          required-ros-distributions: noetic
+      - name: Setup ROS Noetic sources
+        run: |
+          sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu focal main" > /etc/apt/sources.list.d/ros-latest.list'
+          sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+          sudo apt-get update
 
       - name: Install dependencies
         run: |
-          sudo apt-get update
-          sudo apt-get install -y python3-catkin-tools clang-format cppcheck
+          sudo apt-get install -y ros-noetic-desktop python3-catkin-tools python3-rosdep clang-format cppcheck
+          sudo rosdep init
           rosdep update
           rosdep install --from-paths src --ignore-src -r -y
 
       - name: Build
-        run: catkin build
+        run: |
+          source /opt/ros/noetic/setup.bash
+          catkin build
 
       - name: Run tests
         run: |
+          source /opt/ros/noetic/setup.bash
           catkin run_tests
           catkin_test_results
 
