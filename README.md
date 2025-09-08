@@ -166,6 +166,15 @@ mkdir /home/xieys/catkin_ws/output/training -p
 mv ${ROOT}/doc/sparse /home/xieys/catkin_ws/output
 ```
 
+You can also start the system with the helper script:
+
+```bash
+python scripts/run_dataset.py /path/to/sequence.bag r3live
+# with parameter overrides
+python scripts/run_dataset.py /path/to/sequence.bag ntu --override debug_output:=1
+```
+Supported sensor types: `r3live`, `ntu`, `fastlivo`, `botanic`, `botanic_livox`.
+
 
 
 ###  1). Run on [*R3Live_Dataset*](https://github.com/ziv-lin/r3live_dataset)
