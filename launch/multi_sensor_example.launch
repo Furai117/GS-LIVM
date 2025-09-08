@@ -1,0 +1,24 @@
+<launch>
+  <!-- Example multi-sensor setup with dual cameras, Livox Mid-360, and Reach M+ -->
+  <rosparam command="load" file="$(find gslivm)/config/multi_sensor_example.yaml" />
+
+  <!-- Static transforms defining extrinsic calibration -->
+  <node pkg="tf2_ros" type="static_transform_publisher" name="tf_left_camera"
+        args="0.1 0.0 0.05 0 0 0 1 base_link camera_left_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="tf_right_camera"
+        args="-0.1 0.0 0.05 0 0 0 1 base_link camera_right_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="tf_livox"
+        args="0 0 0.1 0 0 0 1 base_link livox_frame" />
+  <node pkg="tf2_ros" type="static_transform_publisher" name="tf_reach"
+        args="0 0 0 0 0 0 1 base_link gnss_frame" />
+
+  <!-- Example node consuming synchronized topics -->
+  <node pkg="gslivm" type="multi_sensor_node" name="multi_sensor_node" output="screen">
+    <param name="approx_sync" value="true" />
+    <param name="queue_size" value="10" />
+    <remap from="camera_left/image" to="/camera_left/image_raw" />
+    <remap from="camera_right/image" to="/camera_right/image_raw" />
+    <remap from="lidar/points" to="/livox/lidar" />
+    <remap from="gnss/fix" to="/reach/position" />
+  </node>
+</launch>

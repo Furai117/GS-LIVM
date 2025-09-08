@@ -1,0 +1,29 @@
+sensors:
+  camera_left:
+    topic: /camera_left/image_raw
+    frame_id: camera_left_frame
+    extrinsic:
+      translation: [0.1, 0.0, 0.05]
+      rotation: [0.0, 0.0, 0.0, 1.0]
+  camera_right:
+    topic: /camera_right/image_raw
+    frame_id: camera_right_frame
+    extrinsic:
+      translation: [-0.1, 0.0, 0.05]
+      rotation: [0.0, 0.0, 0.0, 1.0]
+  lidar:
+    topic: /livox/lidar
+    frame_id: livox_frame
+    extrinsic:
+      translation: [0.0, 0.0, 0.1]
+      rotation: [0.0, 0.0, 0.0, 1.0]
+  gnss:
+    topic: /reach/position
+    frame_id: gnss_frame
+    extrinsic:
+      translation: [0.0, 0.0, 0.0]
+      rotation: [0.0, 0.0, 0.0, 1.0]
+
+sync:
+  approx_sync: true
+  queue_size: 10

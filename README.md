@@ -38,6 +38,8 @@ D. Variance centerd Framework is developed to calculate the initialization param
 
 E. Easy-to-use. ROS-related code is provided. Any bags contains image, LiDAR points, IMU can be processed.
 
+For wiring, calibration, and configuration of dual cameras, Livox Mid-360, and Reach M+ see [Multi-Sensor Setup](doc/multi_sensor_setup.md).
+
 
 ## 1.Overview and Contributions (2024-10-23 Update)
 The system takes input from point cloud data collected by LiDAR, motion information collected by an Inertial Measurement Unit (IMU), and color and texture information captured by a camera. In the tracking thread, the ESIKF algorithm is used for tracking, achieving odometry output at the IMU frequency. In the mapping thread, the rendered color point cloud is used for Voxel-GPR, and then the data initialized 3D gaussian is input into the dense 3D gaussian map for rendering optimization. The final output is a high-quality dense 3D gaussian map. C, D, and S represent the rasterized color image, depth image, and silhouette image, respectively.
